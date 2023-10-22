@@ -49,6 +49,8 @@ func main() {
 	apiv1.Post("/user", userHandler.HandlePostUser)
 	apiv1.Get("/user", userHandler.HandleGetUsers)
 	apiv1.Get("/user/:id", userHandler.HandleGetUserById)
+	apiv1.Delete("/user/:id", userHandler.HandleDeleteUserById)
+	apiv1.Put("/user/:id", userHandler.HandlePutUser)
 
 	// dereference the pointer to string
     app.Listen(*listenAddr)
