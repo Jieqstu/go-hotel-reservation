@@ -14,7 +14,7 @@ import (
 
 const dburi = "mongodb://localhost:27017"
 
-var config = fiber.Config {
+var config = fiber.Config{
 	ErrorHandler: func(c *fiber.Ctx, err error) error {
 		return c.JSON(map[string]string{"error": err.Error()})
 	},
@@ -41,9 +41,9 @@ func main() {
 	// fmt.Println(res)
 
 	// handlers initialization
-	userHandler := api.NewUserHandler(db.NewMongoUserStore(client))
+	userHandler := api.NewUserHandler(db.NewMongoUserStore(client, db.DBNAME))
 
-    app := fiber.New(config)
+	app := fiber.New(config)
 	apiv1 := app.Group("/api/v1")
 
 	apiv1.Post("/user", userHandler.HandlePostUser)
@@ -53,6 +53,6 @@ func main() {
 	apiv1.Put("/user/:id", userHandler.HandlePutUser)
 
 	// dereference the pointer to string
-    app.Listen(*listenAddr)
+	app.Listen(*listenAddr)
 
 }
