@@ -10,16 +10,15 @@ import (
 )
 
 const (
-	bcryptCost = 12
+	bcryptCost      = 12
 	minFirstNameLen = 2
-	minLastNameLen = 3
-	minPasswordLen = 7
-
+	minLastNameLen  = 3
+	minPasswordLen  = 7
 )
 
 type UpdateUserParams struct {
 	FirstName string `json:"firstName"`
-	LastName string `json:"lastName"`
+	LastName  string `json:"lastName"`
 }
 
 func (p UpdateUserParams) ToBSON() bson.M {
@@ -35,9 +34,9 @@ func (p UpdateUserParams) ToBSON() bson.M {
 
 type CreateUserParams struct {
 	FirstName string `json:"firstName"`
-	LastName string `json:"lastName"`
-	Email string `json:"email"`
-	Password string `json:"password"`
+	LastName  string `json:"lastName"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
 }
 
 func (params CreateUserParams) Validate() map[string]string {
@@ -57,17 +56,21 @@ func (params CreateUserParams) Validate() map[string]string {
 	return errors
 }
 
+func IsValidPassword(encpw, pw string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(encpw), []byte(pw)) == nil
+}
+
 func isEmailValid(e string) bool {
 	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 	return emailRegex.MatchString(e)
 }
 
 type User struct {
-	ID primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	FirstName string `bson:"firstName" json:"firstName"`
-	LastName string `bson:"lastName" json:"lastName"`
-	Email string `bson:"email" json:"email"`
-	EncryptedPassword string `bson:"EncryptedPassword" json:"-"`
+	ID                primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	FirstName         string             `bson:"firstName" json:"firstName"`
+	LastName          string             `bson:"lastName" json:"lastName"`
+	Email             string             `bson:"email" json:"email"`
+	EncryptedPassword string             `bson:"EncryptedPassword" json:"-"`
 }
 
 func NewUserFromParams(params CreateUserParams) (*User, error) {
@@ -76,9 +79,9 @@ func NewUserFromParams(params CreateUserParams) (*User, error) {
 		return nil, err
 	}
 	return &User{
-		FirstName: params.FirstName,
-		LastName: params.LastName,
-		Email: params.Email,
+		FirstName:         params.FirstName,
+		LastName:          params.LastName,
+		Email:             params.Email,
 		EncryptedPassword: string(encpw),
 	}, nil
 }
