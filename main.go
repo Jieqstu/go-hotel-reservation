@@ -3,14 +3,13 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/Jieqstu/go-hotel-reservation/api/middleware"
-	"log"
-
 	"github.com/Jieqstu/go-hotel-reservation/api"
+	"github.com/Jieqstu/go-hotel-reservation/api/middleware"
 	"github.com/Jieqstu/go-hotel-reservation/db"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
 )
 
 var config = fiber.Config{
@@ -20,7 +19,6 @@ var config = fiber.Config{
 }
 
 func main() {
-
 	listenAddr := flag.String("listenAddr", "5010", "The listen address of the API server")
 	flag.Parse()
 
@@ -31,20 +29,23 @@ func main() {
 
 	// handlers initialization
 	var (
-		hotelStore = db.NewMongoHotelStore(client)
-		roomStore  = db.NewMongoRoomStore(client, hotelStore)
-		userStore  = db.NewMongoUserStore(client)
-		store      = &db.Store{
-			Hotel: hotelStore,
-			Room:  roomStore,
-			User:  userStore,
+		hotelStore   = db.NewMongoHotelStore(client)
+		roomStore    = db.NewMongoRoomStore(client, hotelStore)
+		userStore    = db.NewMongoUserStore(client)
+		bookingStore = db.NewMongoBookingStore(client)
+		store        = &db.Store{
+			Hotel:   hotelStore,
+			Room:    roomStore,
+			User:    userStore,
+			Booking: bookingStore,
 		}
 		userHandler  = api.NewUserHandler(userStore)
 		hotelHandler = api.NewHotelHandler(store)
 		authHandler  = api.NewAuthHandler(userStore)
+		roomHandler  = api.NewRoomHandler(store)
 		app          = fiber.New(config)
 		auth         = app.Group("/api")
-		apiv1        = app.Group("/api/v1", middleware.JWTAuthentication)
+		apiv1        = app.Group("/api/v1", middleware.JWTAuthentication(userStore))
 	)
 
 	// auth
@@ -62,6 +63,8 @@ func main() {
 	apiv1.Get("/hotel/:id/rooms", hotelHandler.HandleGetRooms)
 	apiv1.Get("/hotel/:id", hotelHandler.HandleGetHotel)
 
+	apiv1.Get("/room", roomHandler.HandleGetRooms)
+	apiv1.Post("/room/:id/book", roomHandler.HandleBookRoom)
 	// dereference the pointer to string
 	app.Listen(*listenAddr)
 
